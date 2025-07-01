@@ -225,6 +225,91 @@ server.delete("/frases/:id", async (req, res) => {
       .json({ success: false, error: "Error al eliminar la frase" });
   }
 });
+// GET /frases/personaje/:personaje_id - Obtener frases de un personaje específico
+server.get("/frases/personaje/:personaje_id", async (req, res) => {
+  const { personaje_id } = req.params;
+  try {
+    const conn = await getConnection();
+
+    const sql = `
+      SELECT f.id, f.texto, f.marca_tiempo, f.descripcion
+      FROM frases f
+      WHERE f.personajes_id = ?;
+    `;
+
+    const [results] = await conn.execute(sql, [personaje_id]);
+    await conn.end();
+
+    res.json({ success: true, frases: results });
+  } catch (error) {
+    console.error("Error en GET /frases/personaje/:personaje_id:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener las frases" });
+  }
+});
+
+// GET /frases/capitulo/:capitulo_id - Obtener frases de un capítulo específico
+server.get("/frases/capitulo/:capitulo_id", async (req, res) => {
+  const { capitulo_id } = req.params;
+  try {
+    const conn = await getConnection();
+
+    const sql = `
+      SELECT f.id, f.texto, f.marca_tiempo, f.descripcion
+      FROM frases f
+      WHERE f.capitulos_id = ?;
+    `;
+
+    const [results] = await conn.execute(sql, [capitulo_id]);
+    await conn.end();
+
+    res.json({ success: true, frases: results });
+  } catch (error) {
+    console.error("Error en GET /frases/capitulo/:capitulo_id:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener las frases" });
+  }
+});
+
+// GET /personajes - Listar todos los personajes
+server.get("/personajes", async (req, res) => {
+  try {
+    const conn = await getConnection();
+
+    const sql = `SELECT * FROM personajes;`;
+    const [results] = await conn.query(sql);
+
+    await conn.end();
+
+    res.json({ success: true, personajes: results });
+  } catch (error) {
+    console.error("Error en GET /personajes:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener los personajes" });
+  }
+});
+
+// GET /capitulos - Listar todos los capítulos
+server.get("/capitulos", async (req, res) => {
+  try {
+    const conn = await getConnection();
+
+    const sql = `SELECT * FROM capitulos;`;
+    const [results] = await conn.query(sql);
+
+    await conn.end();
+
+    res.json({ success: true, capitulos: results });
+  } catch (error) {
+    console.error("Error en GET /capitulos:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener los capítulos" });
+  }
+});
 
 // Manejo de rutas no existentes
 server.use((req, res) => {
