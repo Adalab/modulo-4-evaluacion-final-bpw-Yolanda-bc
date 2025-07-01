@@ -150,7 +150,6 @@ server.put("/frases/:id", async (req, res) => {
   try {
     const conn = await getConnection();
 
-    // Verificar que la frase existe
     const [exist] = await conn.execute("SELECT id FROM frases WHERE id = ?", [
       id,
     ]);
@@ -202,7 +201,6 @@ server.delete("/frases/:id", async (req, res) => {
   try {
     const conn = await getConnection();
 
-    // Verificar que existe la frase
     const [exist] = await conn.execute("SELECT id FROM frases WHERE id = ?", [
       id,
     ]);
@@ -225,7 +223,8 @@ server.delete("/frases/:id", async (req, res) => {
       .json({ success: false, error: "Error al eliminar la frase" });
   }
 });
-// GET /frases/personaje/:personaje_id - Obtener frases de un personaje específico
+
+// GET /frases/personaje/:personaje_id - Obtener frases por personaje
 server.get("/frases/personaje/:personaje_id", async (req, res) => {
   const { personaje_id } = req.params;
   try {
@@ -249,7 +248,7 @@ server.get("/frases/personaje/:personaje_id", async (req, res) => {
   }
 });
 
-// GET /frases/capitulo/:capitulo_id - Obtener frases de un capítulo específico
+// GET /frases/capitulo/:capitulo_id - Obtener frases por capítulo
 server.get("/frases/capitulo/:capitulo_id", async (req, res) => {
   const { capitulo_id } = req.params;
   try {
@@ -273,7 +272,7 @@ server.get("/frases/capitulo/:capitulo_id", async (req, res) => {
   }
 });
 
-// GET /personajes - Listar todos los personajes
+// GET /personajes - Listar personajes
 server.get("/personajes", async (req, res) => {
   try {
     const conn = await getConnection();
@@ -292,7 +291,7 @@ server.get("/personajes", async (req, res) => {
   }
 });
 
-// GET /capitulos - Listar todos los capítulos
+// GET /capitulos - Listar capítulos
 server.get("/capitulos", async (req, res) => {
   try {
     const conn = await getConnection();
@@ -311,7 +310,44 @@ server.get("/capitulos", async (req, res) => {
   }
 });
 
-// Manejo de rutas no existentes
+// POST /capitulos - Crear un nuevo capítulo
+server.post("/capitulos", async (req, res) => {
+  const { titulo, descripcion } = req.body;
+
+  if (!titulo) {
+    return res
+      .status(400)
+      .json({ success: false, error: "El campo 'titulo' es obligatorio" });
+  }
+
+  try {
+    const conn = await getConnection();
+
+    const sql = `
+      INSERT INTO capitulos (titulo, descripcion)
+      VALUES (?, ?);
+    `;
+
+    const [result] = await conn.execute(sql, [titulo, descripcion || null]);
+    await conn.end();
+
+    res.status(201).json({
+      success: true,
+      capitulo: {
+        id: result.insertId,
+        titulo,
+        descripcion,
+      },
+    });
+  } catch (error) {
+    console.error("Error en POST /capitulos:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Error al crear el capítulo" });
+  }
+});
+
+// Ruta no encontrada
 server.use((req, res) => {
   res.status(404).json({ success: false, error: "Ruta no encontrada" });
 });
